@@ -85,60 +85,57 @@ table_json_schemas = {
 }
 
 
-def validate_table_structure(data):
+def validate_dictionary_with_unique_key(data, key_list):
     """
-    Validate the external structure of the input JSON data.
+    Validate if data is a dictionary with a only one key and the value is not empty.
 
     Parameters:
-    - data (dict): Input JSON data.
+    - data (dict): Dictionary data.
+    - key_list (array): List of keys.
 
     Returns:
     - tuple: A tuple containing a boolean indicating validation result and an error message (if any).
     """
     try:
-        # Check if the data is a dictionary, has exactly one key, that key is 'table',
-        # and the value corresponding to 'table' is also a dictionary.
-        if not isinstance(data, dict) or len(data) != 1 or "table" not in data or not isinstance(data["table"], dict):
-            raise ValidationError("Invalid external structure. Must contain only one key 'table' with a dictionary value.")
+        # Check if the data is a dictionary
+        if not isinstance(data, dict):
+            raise ValidationError("Invalid input. Must be a dictionary.")
+
+        # Check if there is exactly one key in the dictionary
+        if len(data) != 1:
+            raise ValidationError("The dictionary must have exactly one key.")
+
+        # Check if the specified key is present in the dictionary
+        dict_key = next(iter(data))
+        if dict_key not in key_list:
+            valid_keys = ', '.join(map(lambda key: f"'{key}'", key_list))
+            raise ValidationError(f"The dictionary key '{dict_key}' should be: {valid_keys}")
+
+        # Check if the value corresponding to the specified key is a non-empty dictionary
+        if not data[dict_key] or not isinstance(data[dict_key], dict):
+            raise ValidationError(f"The dictionary associated with key '{dict_key}' must not be empty and should be a valid dictionary.")
+
         return True, ""  # Validation successful
     except ValidationError as validation_error:
         return False, str(validation_error)  # Validation failed with an error message
 
 
-def validate_internal_table_structure(table_data):
+def validate_table_data(table_data, table_name):
     """
-    Validate the internal structure of the "table" key.
+    Validate the schema (column names and the data types) of the table data.
 
     Parameters:
-    - table_data (dict): Data inside the "table" key.
+    - table_data (dict): Data inside of "hired_employees", "departments", "jobs".
+    - table_name (str): Name of table.
 
     Returns:
     - tuple: A tuple containing a boolean indicating validation result and an error message (if any).
     """
     try:
-        # Check if the 'table' structure is not empty
-        if not table_data:
-            raise ValidationError("The 'table' structure must not be empty.")
-
-        # Extract the table name and properties from the 'table' structure
-        table_name, table_schema = next(iter(table_data.items()))  # Extract the table name and properties
-
-        # Check if the extracted table name is in the predefined JSON schemas
-        if table_name not in table_json_schemas:
-            valid_table_names = ', '.join(map(str, table_json_schemas.keys()))
-            raise ValidationError(f"Unknown table: '{table_name}'. Valid table names are: {valid_table_names}")
-
-        # Check if the properties of the table are represented as a dictionary
-        if not isinstance(table_schema, dict):
-            raise ValidationError(f"Invalid table structure. Table '{table_name}' must be an object.")
-
-        # Check if the table properties are not empty
-        if not table_schema:
-            raise ValidationError(f"The table '{table_name}' must not be an empty object. Provide valid properties.")
-
+        # Validate the schema of table data
         try:
             # Validate the schema using jsonschema
-            validate(instance=table_schema, schema=table_json_schemas[table_name])
+            validate(instance=table_data, schema=table_json_schemas[table_name])
             return True, ""  # Validation successful
         except ValidationError as validation_error:
             # If validation using jsonschema fails, provide a custom error message
@@ -147,6 +144,38 @@ def validate_internal_table_structure(table_data):
             # If there is an issue with the JSON schema itself, provide a custom error message
             raise ValidationError(f"Invalid JSON schema for table '{table_name}'.") from schema_error
 
+    except ValidationError as validation_error:
+        return False, str(validation_error)  # Validation failed with an error message
+
+
+def validate_record_count(table_data):
+    """
+    Validate the number of records of table data.
+
+    Parameters:
+    - table_data (dict): Data inside of "hired_employees", "departments", "jobs"
+
+    Returns:
+    - tuple: A tuple containing a boolean indicating validation result and an error message (if any).
+    """
+    try:
+        expected_record_count = None
+
+        for column_name, records in table_data.items():
+            record_count = len(records)
+            if not 1 <= record_count <= 1000:
+                raise ValidationError(f"Invalid number of records for column '{column_name}'. "
+                                      f"Expected between 1 and 1000 records, but got {record_count}.")
+
+            if expected_record_count is None:
+                # Set the expected record count for the first column
+                expected_record_count = record_count
+            elif record_count != expected_record_count:
+                # Check if the current column has the same number of records as the first column
+                raise ValidationError(f"Mismatched record count for column '{column_name}'. "
+                                      f"Expected {expected_record_count} records, but got {record_count}.")
+
+        return True, ""  # Validation successful
     except ValidationError as validation_error:
         return False, str(validation_error)  # Validation failed with an error message
 
@@ -163,26 +192,42 @@ def receive_table_data():
         # Get the JSON data from the request
         json_data = request.get_json()
 
-        # Validate the table structure
-        is_valid_external, external_error_message = validate_table_structure(json_data)
-        if not is_valid_external:
-            response = {"status": "error", "message": external_error_message}
+        # Validate JSON data
+        entry_key_list = ["table"]
+        is_valid_entry_dict, entry_dict_error_message = validate_dictionary_with_unique_key(json_data, entry_key_list)
+        if not is_valid_entry_dict:
+            response = {"status": "error", "message": entry_dict_error_message}
             return jsonify(response), 400
 
-        # Validate the structure inside of "table"
-        is_valid_internal, internal_error_message = validate_internal_table_structure(json_data["table"])
-        if not is_valid_internal:
-            response = {"status": "error", "message": internal_error_message}
+        # Extract the entry key and entry data
+        entry_key = next(iter(json_data))
+        entry_data = json_data[entry_key]
+
+        # Validate the entry data
+        table_name_list = ["hired_employees", "departments", "jobs"]
+        is_valid_table_dict, table_dict_error_message = validate_dictionary_with_unique_key(entry_data, table_name_list)
+        if not is_valid_table_dict:
+            response = {"status": "error", "message": table_dict_error_message}
             return jsonify(response), 400
 
-        # Extract the table data from JSON data
-        table_dict = json_data["table"]
+        # Extract the table name and table data
+        table_name = next(iter(entry_data))
+        table_data = entry_data[table_name]
 
-        # Extract table name key
-        table_name = next(iter(table_dict.keys()))
+        # Validate the schema (column names and the data types) of the table data
+        is_valid_table_data, table_data_error_message = validate_table_data(table_data, table_name)
+        if not is_valid_table_data:
+            response = {"status": "error", "message": table_data_error_message}
+            return jsonify(response), 400
+
+        # Validate record count of table data
+        is_valid_record_count, record_count_error_message = validate_record_count(table_data)
+        if not is_valid_record_count:
+            response = {"status": "error", "message": record_count_error_message}
+            return jsonify(response), 400
 
         # Convert the data dictionary to a DataFrame
-        df = pd.DataFrame(table_dict[table_name])
+        df = pd.DataFrame(table_data)
 
         # Return the DataFrame as JSON
         return jsonify(df.to_dict(orient="records"))
