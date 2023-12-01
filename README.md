@@ -33,7 +33,7 @@ pandas
 * Run the Flask App: `python .\api.py`
 * Deactivate the virtual environment: `deactivate`
 
-## How to use the API using POSTMAN
+## How to use the API using Postman
 > Postman
 * Run Flask App: `python .\api.py`
 * Open Postman
@@ -48,9 +48,10 @@ pandas
     - Choose the content type as JSON (application/json).
     - In the body, enter your JSON data. For example:
     ```
-    {
-    "column1": [1, 2, 3],
-    "column2": ["a", "b", "c"]
+    {   "jobs": {
+            "id": [1, 2, 3],
+            "job": ["Marketing Assistant", "VP Sales", "Biostatistician IV"]
+        }
     }
     ```
 * Send the Request:
