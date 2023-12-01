@@ -1,5 +1,52 @@
 # -*- coding: utf-8 -*-
 
+"""
+Flask API for Receiving JSON Table Data
+
+This Flask API serves as an endpoint for receiving JSON data containing tables
+and validates both the external and internal structures of the input data.
+It uses JSON schemas to validate the internal structure of each table type
+("hired_employees", "departments", "jobs"). The validated data is then
+converted to a Pandas DataFrame and returned as a JSON response.
+
+Endpoints:
+- POST /api/receive_table_data: Receives JSON data, validates its structure,
+  converts it to a DataFrame, and returns the DataFrame as a JSON response.
+
+Dependencies:
+- Flask: Web framework for building the API.
+- pandas: Data manipulation library for working with DataFrames.
+- jsonschema: Library for validating JSON data against a specified schema.
+
+Note: Ensure that the required dependencies are installed before running the API.
+
+Usage:
+1. Run the script.
+2. Send a POST request with JSON data to the /api/receive_table_data endpoint.
+
+Example JSON Data:
+{
+    "table": {
+        "hired_employees": {
+            "id": [1, 2],
+            "name": ["John", "Jane"],
+            "datetime": ["2023-01-01", "2023-01-02"],
+            "department_id": [1, 2],
+            "job_id": [101, 102]
+        }
+    }
+}
+
+Example Response:
+{
+    "status": "success",
+    "data": [
+        {"id": 1, "name": "John", "datetime": "2023-01-01", "department_id": 1, "job_id": 101},
+        {"id": 2, "name": "Jane", "datetime": "2023-01-02", "department_id": 2, "job_id": 102}
+    ]
+}
+"""
+
 from flask import Flask, request, jsonify
 import pandas as pd
 from jsonschema import validate, ValidationError, SchemaError
@@ -72,15 +119,15 @@ def validate_internal_table_structure(table_data):
         # Check if the 'table' structure is not empty
         if not table_data:
             raise ValidationError("The 'table' structure must not be empty.")
-        
+
         # Extract the table name and properties from the 'table' structure
         table_name, table_schema = next(iter(table_data.items()))  # Extract the table name and properties
 
         # Check if the extracted table name is in the predefined JSON schemas
         if table_name not in table_json_schemas:
-            valid_table_names = ', '.join([f"'{name}'" for name in table_json_schemas.keys()])
+            valid_table_names = ', '.join(map(str, table_json_schemas.keys()))
             raise ValidationError(f"Unknown table: '{table_name}'. Valid table names are: {valid_table_names}")
-        
+
         # Check if the properties of the table are represented as a dictionary
         if not isinstance(table_schema, dict):
             raise ValidationError(f"Invalid table structure. Table '{table_name}' must be an object.")
@@ -99,9 +146,9 @@ def validate_internal_table_structure(table_data):
         except SchemaError as schema_error:
             # If there is an issue with the JSON schema itself, provide a custom error message
             raise ValidationError(f"Invalid JSON schema for table '{table_name}'.") from schema_error
-    
+
     except ValidationError as validation_error:
-        return False, str(validation_error) # Validation failed with an error message
+        return False, str(validation_error)  # Validation failed with an error message
 
 
 @app.route("/api/receive_table_data", methods=["POST"])
@@ -143,6 +190,7 @@ def receive_table_data():
     except Exception as exception:
         response = {"status": "error", "message": str(exception)}
         return jsonify(response), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
