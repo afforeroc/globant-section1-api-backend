@@ -1,5 +1,11 @@
 # Backend for Section 1: API of Globant's Data Engineering Coding Challenge
 
+## Dependencies
+```
+flask
+pandas
+```
+
 ## Instructions to configure the API in local way
 
 ## Install Python and update PIP
@@ -7,6 +13,9 @@
 * Install [Python 3.9.0](https://www.python.org/downloads/release/python-390/)
 * Check Python version: `python --version`
 * Install and upgrade PIP: `python -m pip install --upgrade pip`
+
+## Install Postman
+* Install [Postman](https://www.postman.com/downloads/)
 
 ## Configure the virtual environment
 > PowerShell
@@ -21,11 +30,31 @@
 > PowerShell
 * Access the repository folder: `cd .\globant-section1-api-backend\`
 * Activate the virtual environment: `.\venv\Scripts\activate`
-* Run python file: `python .\api.py`
+* Run the Flask App: `python .\api.py`
 * Deactivate the virtual environment: `deactivate`
 
-## Dependencies
-```
-flask
-pandas
-```
+## How to use the API using POSTMAN
+> Postman
+* Run Flask App: `python .\api.py`
+* Open Postman
+* Create a New Request:
+    - Click on the "New" button in Postman to create a new request.
+* Set Request Details:
+    - Choose the HTTP method as POST.
+    - Enter the URL of your Flask app, e.g., `http://127.0.0.1:5000/api/receive_json`
+    - Go to the "Body" tab.
+* Add JSON Data:
+    - Select the raw option.
+    - Choose the content type as JSON (application/json).
+    - In the body, enter your JSON data. For example:
+    ```
+    {
+    "column1": [1, 2, 3],
+    "column2": ["a", "b", "c"]
+    }
+    ```
+* Send the Request:
+    - Click on the "Send" button to send the POST request to your Flask API.
+* View Response:
+    - Postman will display the response from your Flask API.
+    - The Flask app should respond with a JSON representation of the Pandas DataFrame.
