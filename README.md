@@ -4,6 +4,7 @@
 ```
 flask
 pandas
+jsonschema
 ```
 
 ## Instructions to configure the API in local way
