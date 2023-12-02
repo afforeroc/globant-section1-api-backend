@@ -68,10 +68,10 @@ table_json_schemas = {
         "type": "object",
         "properties": {
             "id": {"type": "array", "items": {"type": "integer"}},
-            "name": {"type": "array", "items": {"type": "string"}},
-            "datetime": {"type": "array", "items": {"type": "string", "format": "date-time"}},
-            "department_id": {"type": "array", "items": {"type": "integer"}},
-            "job_id": {"type": "array", "items": {"type": "integer"}},
+            "name": {"type": "array", "items": {"type": ["string", "null"] }},
+            "datetime": {"type": "array", "items": {"type": ["string", "null"], "format": "date-time"}},
+            "department_id": {"type": "array", "items": {"type": ["integer", "null"]}},
+            "job_id": {"type": "array", "items": {"type": ["integer", "null"]}},
         },
         "required": ["id", "name", "datetime", "department_id", "job_id"],
         "additionalProperties": False
@@ -122,6 +122,38 @@ def create_snowflake_connection():
         schema=snowflake_credentials["schema"]
     )
     return snowflake_connection
+
+
+def delete_records_by_id_for_snowflake(conn, table_name, id_values):
+    """
+    Delete records from Snowflake table based on the specified IDs.
+
+    Parameters:
+    - conn (snowflake.connector.connection): Snowflake connection object.
+    - table_name (str): The name of the Snowflake table.
+    - id_values (list): List of IDs to be deleted.
+
+    Returns:
+    - None
+    """
+    # Create a cursor object
+    cursor = conn.cursor()
+    try:
+        # Generate a comma-separated string of IDs for the WHERE clause
+        id_string = ', '.join(map(str, id_values))
+        # Construct the DELETE query
+        delete_query = f"DELETE FROM {table_name} WHERE ID IN ({id_string})"
+        # Execute the DELETE query
+        cursor.execute(delete_query)
+        # Commit the changes
+        conn.commit()
+        print(f"Records with IDs {id_string} deleted successfully.")
+    except Exception as e:
+        # Handle the exception (you can modify this part based on your requirements)
+        print(f"Error deleting records with IDs {id_string}. {str(e)}")
+    finally:
+        # Close the cursor
+        cursor.close()
 
 
 def validate_dictionary_with_unique_key(data, key_list):
@@ -273,14 +305,21 @@ def receive_table_data():
             response = {"status": "error", "message": f"Error creating Pandas DataFrame: {str(exception)}"}
             return jsonify(response), 500
 
-        # Uppercase table name and columns
+        # Uppercase table name
         table_name = table_name.upper()
+        # Uppercase all column names
         df.columns = [col.upper() for col in df.columns]
+        # Extract unique IDs from the DataFrame
+        unique_ids = df['ID'].unique().tolist()
 
         # Snowflake connection
         conn = create_snowflake_connection()
         try:
+            # Delete existing records with the same IDs
+            delete_records_by_id_for_snowflake(conn, table_name, unique_ids)
+            # Write new data to Snowflake
             success, nchunks, nrows, _ = write_pandas(conn, df, table_name)
+            # Success response
             response = {"status": "success", "message": f"Data was inserted into table '{table_name}'."}
             return jsonify(response), 200
         except Exception as _:

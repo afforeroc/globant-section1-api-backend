@@ -8,6 +8,7 @@ jsonschema
 python-dotenv
 SQLAlchemy
 snowflake-sqlalchemy
+"snowflake-connector-python[secure-local-storage,pandas]"
 ```
 
 ## Instructions to configure the API in local way
@@ -51,10 +52,41 @@ snowflake-sqlalchemy
     - Select the raw option.
     - Choose the content type as JSON (application/json).
     - In the body, enter your JSON data. For example:
+
+    hired_employees e.g.
     ```
-    {   "jobs": {
-            "id": [1, 2, 3],
-            "job": ["Marketing Assistant", "VP Sales", "Biostatistician IV"]
+    {
+        "table": {
+            "hired_employees": {
+                "id": [1, 2],
+                "name": ["Harold Vogt", "Ty Hofer"],
+                "datetime": ["2021-11-07T02:48:42Z", "2021-05-30T05:43:46Z"],
+                "department_id": [2, 8],
+                "job_id": [96, null]
+            }
+        }
+    }
+    ```
+    departments e.g.
+    ```
+    
+    {
+        "table": {
+            "departments": {
+                "id": [1, 2],
+                "department": ["Product Management", "Sales"]
+            }
+        }
+    }
+    ```
+    jobs e.g.
+    ```
+    {
+        "table": {
+            "jobs": {
+                "id": [1, 2],
+                "job": ["Marketing Assistant", "VP Sales"]
+            }
         }
     }
     ```
