@@ -5,6 +5,9 @@
 flask
 pandas
 jsonschema
+python-dotenv
+SQLAlchemy
+snowflake-sqlalchemy
 ```
 
 ## Instructions to configure the API in local way

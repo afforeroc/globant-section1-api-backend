@@ -50,6 +50,15 @@ Example Response:
 from flask import Flask, request, jsonify
 import pandas as pd
 from jsonschema import validate, ValidationError, SchemaError
+from dotenv import dotenv_values
+import snowflake.connector
+from snowflake.connector.pandas_tools import write_pandas
+# from sqlalchemy import create_engine, types, inspect, text,  delete, MetaData, Table, Column, Integer, String
+# from sqlalchemy.exc import SQLAlchemyError
+# from sqlalchemy.orm import sessionmaker
+
+# Load JSON data from the .env file
+snowflake_credentials = dotenv_values(".env")
 
 app = Flask(__name__)
 
@@ -86,6 +95,33 @@ table_json_schemas = {
         "additionalProperties": False
     }
 }
+
+
+""""
+def create_sqlalchemy_engine_for_snowflake(credentials):
+    user_login = credentials["user_login"]
+    password = credentials["password"]
+    account = credentials["account"]
+    warehouse = credentials["warehouse"]
+    database = credentials["database"]
+    schema = credentials["schema"]
+    role = credentials["role"]
+    url = f"snowflake://{user_login}:{password}@{account}/{database}/{schema}?warehouse={warehouse}&role={role}"
+    engine = create_engine(url)
+    return engine
+"""
+
+
+def create_snowflake_connection():
+    snowflake_connection = snowflake.connector.connect(
+        user=snowflake_credentials["user_login"],
+        password=snowflake_credentials["password"],
+        account=snowflake_credentials["account"],
+        warehouse=snowflake_credentials["warehouse"],
+        database=snowflake_credentials["database"],
+        schema=snowflake_credentials["schema"]
+    )
+    return snowflake_connection
 
 
 def validate_dictionary_with_unique_key(data, key_list):
@@ -227,15 +263,28 @@ def receive_table_data():
         is_valid_record_count, record_count_error_message = validate_record_count(table_data)
         if not is_valid_record_count:
             response = {"status": "error", "message": record_count_error_message}
-            return jsonify(response), 400        
+            return jsonify(response), 400
 
         # Convert the data dictionary to a DataFrame
         try:
             df = pd.DataFrame(table_data)
-            response = {"status": "success", "message": f"Pandas DataFrame created for table '{table_name}'."}
+            print(df)
+        except Exception as exception:
+            response = {"status": "error", "message": f"Error creating Pandas DataFrame: {str(exception)}"}
+            return jsonify(response), 500
+
+        # Uppercase table name and columns
+        table_name = table_name.upper()
+        df.columns = [col.upper() for col in df.columns]
+
+        # Snowflake connection
+        conn = create_snowflake_connection()
+        try:
+            success, nchunks, nrows, _ = write_pandas(conn, df, table_name)
+            response = {"status": "success", "message": f"Data was inserted into table '{table_name}'."}
             return jsonify(response), 200
-        except Exception as e:
-            response = {"status": "error", "message": f"Error creating Pandas DataFrame: {str(e)}"}
+        except Exception as _:
+            response = {"status": "error", "message": f"Error inserting data into  table '{table_name}'."}
             return jsonify(response), 500
 
     except Exception as exception:
