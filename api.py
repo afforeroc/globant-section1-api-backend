@@ -64,7 +64,8 @@ table_json_schemas = {
             "department_id": {"type": "array", "items": {"type": "integer"}},
             "job_id": {"type": "array", "items": {"type": "integer"}},
         },
-        "required": ["id", "name", "datetime", "department_id", "job_id"]
+        "required": ["id", "name", "datetime", "department_id", "job_id"],
+        "additionalProperties": False
     },
     "departments": {
         "type": "object",
@@ -72,7 +73,8 @@ table_json_schemas = {
             "id": {"type": "array", "items": {"type": "integer"}},
             "department": {"type": "array", "items": {"type": "string"}},
         },
-        "required": ["id", "department"]
+        "required": ["id", "department"],
+        "additionalProperties": False
     },
     "jobs": {
         "type": "object",
@@ -80,14 +82,15 @@ table_json_schemas = {
             "id": {"type": "array", "items": {"type": "integer"}},
             "job": {"type": "array", "items": {"type": "string"}},
         },
-        "required": ["id", "job"]
-    },
+        "required": ["id", "job"],
+        "additionalProperties": False
+    }
 }
 
 
 def validate_dictionary_with_unique_key(data, key_list):
     """
-    Validate if data is a dictionary with a only one key and the value is not empty.
+    Validate if data is a dictionary with only one key and the value is not empty.
 
     Parameters:
     - data (dict): Dictionary data.
@@ -224,13 +227,16 @@ def receive_table_data():
         is_valid_record_count, record_count_error_message = validate_record_count(table_data)
         if not is_valid_record_count:
             response = {"status": "error", "message": record_count_error_message}
-            return jsonify(response), 400
+            return jsonify(response), 400        
 
         # Convert the data dictionary to a DataFrame
-        df = pd.DataFrame(table_data)
-
-        # Return the DataFrame as JSON
-        return jsonify(df.to_dict(orient="records"))
+        try:
+            df = pd.DataFrame(table_data)
+            response = {"status": "success", "message": f"Pandas DataFrame created for table '{table_name}'."}
+            return jsonify(response), 200
+        except Exception as e:
+            response = {"status": "error", "message": f"Error creating Pandas DataFrame: {str(e)}"}
+            return jsonify(response), 500
 
     except Exception as exception:
         response = {"status": "error", "message": str(exception)}
