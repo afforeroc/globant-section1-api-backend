@@ -2,12 +2,10 @@
 
 ## Dependencies
 ```
-flask
+python-dotenv
 pandas
 jsonschema
-python-dotenv
-SQLAlchemy
-snowflake-sqlalchemy
+flask
 "snowflake-connector-python[secure-local-storage,pandas]"
 ```
 
@@ -15,7 +13,7 @@ snowflake-sqlalchemy
 
 ## Install Python and update PIP
 > PowerShell
-* Install [Python 3.9.0](https://www.python.org/downloads/release/python-390/)
+* Install [Python 3.10.0](https://www.python.org/downloads/release/python-3100/)
 * Check Python version: `python --version`
 * Install and upgrade PIP: `python -m pip install --upgrade pip`
 

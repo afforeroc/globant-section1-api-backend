@@ -1,2 +1,5 @@
-flask
+python-dotenv
 pandas
+jsonschema
+flask
+snowflake-connector-python[secure-local-storage,pandas]

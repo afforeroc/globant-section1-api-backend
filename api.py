@@ -39,11 +39,8 @@ Example JSON Data:
 
 Example Response:
 {
-    "status": "success",
-    "data": [
-        {"id": 1, "name": "John", "datetime": "2023-01-01", "department_id": 1, "job_id": 101},
-        {"id": 2, "name": "Jane", "datetime": "2023-01-02", "department_id": 2, "job_id": 102}
-    ]
+    "message": "Data was inserted into table 'HIRED_EMPLOYEES'.",
+    "status": "success"
 }
 """
 
@@ -53,9 +50,6 @@ from jsonschema import validate, ValidationError, SchemaError
 from dotenv import dotenv_values
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
-# from sqlalchemy import create_engine, types, inspect, text,  delete, MetaData, Table, Column, Integer, String
-# from sqlalchemy.exc import SQLAlchemyError
-# from sqlalchemy.orm import sessionmaker
 
 # Load JSON data from the .env file
 snowflake_credentials = dotenv_values(".env")
@@ -97,31 +91,28 @@ table_json_schemas = {
 }
 
 
-""""
-def create_sqlalchemy_engine_for_snowflake(credentials):
-    user_login = credentials["user_login"]
-    password = credentials["password"]
-    account = credentials["account"]
-    warehouse = credentials["warehouse"]
-    database = credentials["database"]
-    schema = credentials["schema"]
-    role = credentials["role"]
-    url = f"snowflake://{user_login}:{password}@{account}/{database}/{schema}?warehouse={warehouse}&role={role}"
-    engine = create_engine(url)
-    return engine
-"""
-
-
 def create_snowflake_connection():
-    snowflake_connection = snowflake.connector.connect(
-        user=snowflake_credentials["user_login"],
-        password=snowflake_credentials["password"],
-        account=snowflake_credentials["account"],
-        warehouse=snowflake_credentials["warehouse"],
-        database=snowflake_credentials["database"],
-        schema=snowflake_credentials["schema"]
-    )
-    return snowflake_connection
+    """
+    Connects to Snowflake using the provided credentials from the .env file.
+
+    Returns:
+    snowflake.connector.connection.SnowflakeConnection: A Snowflake connection object.
+
+    Raises:
+    snowflake.connector.errors.DatabaseError: If there is an error connecting to Snowflake.
+    """
+    try:
+        snowflake_connection = snowflake.connector.connect(
+            user=snowflake_credentials["user_login"],
+            password=snowflake_credentials["password"],
+            account=snowflake_credentials["account"],
+            warehouse=snowflake_credentials["warehouse"],
+            database=snowflake_credentials["database"],
+            schema=snowflake_credentials["schema"]
+        )
+        return snowflake_connection
+    except snowflake.connector.errors.DatabaseError as snowflake_error:
+        print(f"Error connecting to Snowflake: {str(snowflake_error)}")
 
 
 def delete_records_by_id_for_snowflake(conn, table_name, id_values):
@@ -147,7 +138,7 @@ def delete_records_by_id_for_snowflake(conn, table_name, id_values):
         cursor.execute(delete_query)
         # Commit the changes
         conn.commit()
-        print(f"Records with IDs {id_string} deleted successfully.")
+        # print(f"Records with IDs {id_string} deleted successfully.")
     except Exception as e:
         # Handle the exception (you can modify this part based on your requirements)
         print(f"Error deleting records with IDs {id_string}. {str(e)}")
@@ -251,7 +242,7 @@ def validate_record_count(table_data):
         return False, str(validation_error)  # Validation failed with an error message
 
 
-@app.route("/api/receive_table_data", methods=["POST"])
+@app.route("/api/receive-table-data", methods=["POST"])
 def receive_table_data():
     """
     API endpoint to receive JSON data containing a table and return it as a DataFrame.
@@ -262,6 +253,8 @@ def receive_table_data():
     try:
         # Get the JSON data from the request
         json_data = request.get_json()
+        print("JSON_DATA = ", json_data)
+        print("TYPE(JSON_DATA) = ", type(json_data))
 
         # Validate JSON data
         entry_key_list = ["table"]
@@ -300,7 +293,7 @@ def receive_table_data():
         # Convert the data dictionary to a DataFrame
         try:
             df = pd.DataFrame(table_data)
-            print(df)
+            # print(df)
         except Exception as exception:
             response = {"status": "error", "message": f"Error creating Pandas DataFrame: {str(exception)}"}
             return jsonify(response), 500
