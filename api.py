@@ -51,9 +51,6 @@ from dotenv import dotenv_values
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
 
-# Load JSON data from the .env file
-snowflake_credentials = dotenv_values(".env")
-
 app = Flask(__name__)
 
 # JSON schemas for each table "hired_employees", "departments" and "jobs"
@@ -91,7 +88,7 @@ table_json_schemas = {
 }
 
 
-def create_snowflake_connection():
+def create_snowflake_connection(snowflake_credentials):
     """
     Connects to Snowflake using the provided credentials from the .env file.
 
@@ -253,8 +250,6 @@ def receive_table_data():
     try:
         # Get the JSON data from the request
         json_data = request.get_json()
-        print("JSON_DATA = ", json_data)
-        print("TYPE(JSON_DATA) = ", type(json_data))
 
         # Validate JSON data
         entry_key_list = ["table"]
@@ -300,13 +295,18 @@ def receive_table_data():
 
         # Uppercase table name
         table_name = table_name.upper()
+        
         # Uppercase all column names
         df.columns = [col.upper() for col in df.columns]
+        
         # Extract unique IDs from the DataFrame
         unique_ids = df['ID'].unique().tolist()
 
+        # Load JSON data from the .env file
+        snowflake_credentials = dotenv_values(".env")
+        
         # Snowflake connection
-        conn = create_snowflake_connection()
+        conn = create_snowflake_connection(snowflake_credentials)
         try:
             # Delete existing records with the same IDs
             delete_records_by_id_for_snowflake(conn, table_name, unique_ids)

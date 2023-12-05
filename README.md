@@ -6,10 +6,10 @@ python-dotenv
 pandas
 jsonschema
 flask
-"snowflake-connector-python[secure-local-storage,pandas]"
+snowflake-connector-python[secure-local-storage,pandas]
 ```
 
-## Instructions to configure the API in local way
+## Steps to use the API locally
 
 ## Install Python and update PIP
 > PowerShell
@@ -29,11 +29,20 @@ flask
 * Activate the virtual environment: `.\venv\Scripts\activate`
 * Install the libraries required: `pip install -r requirements.txt`
 
-## How to use virtual env
+## How to use
+
+## How to use the API with virtual env
 > PowerShell
 * Access the repository folder: `cd .\globant-section1-api-backend\`
 * Activate the virtual environment: `.\venv\Scripts\activate`
 * Run the Flask App: `python .\api.py`
+* Deactivate the virtual environment: `deactivate`
+
+## How to test the API with unit tests
+> PowerShell
+* Access the repository folder: `cd .\globant-section1-api-backend\`
+* Activate the virtual environment: `.\venv\Scripts\activate`
+* Run the Flask App: `python .\test_api.py`
 * Deactivate the virtual environment: `deactivate`
 
 ## How to use the API using Postman
@@ -44,7 +53,7 @@ flask
     - Click on the "New" button in Postman to create a new request.
 * Set Request Details:
     - Choose the HTTP method as POST.
-    - Enter the URL of your Flask app, e.g., `http://127.0.0.1:5000/api/receive_json`
+    - Enter the URL of your Flask app, e.g., `http://127.0.0.1:5000/api/receive-table-data`
     - Go to the "Body" tab.
 * Add JSON Data:
     - Select the raw option.

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Unit tests for the Flask API in the 'api' module, focusing on the '/api/receive_table_data' endpoint.
+Unit tests for the Flask API in the 'api' module, focusing on the '/api/receive-table-data' endpoint.
 Scenarios cover positive cases with valid data for tables like 'hired_employees,' 'departments,' and 'jobs.'
 Error handling is tested for empty dictionaries, invalid keys, non-dictionary inputs, tables with missing
 columns, invalid columns, extra columns, mismatched record counts, empty records, and data type inconsistencies.
@@ -46,7 +46,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 200)
@@ -62,7 +62,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 200)
@@ -78,7 +78,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 200)
@@ -87,7 +87,7 @@ class TestFlaskAPI(unittest.TestCase):
     def test_receive_table_data_empty_dict(self):
         data = {"table": {}}
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -97,7 +97,7 @@ class TestFlaskAPI(unittest.TestCase):
     def test_receive_table_data_invalid_entry_dict(self):
         data = {"invalid_key": {"hired_employees": {}}}
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -107,7 +107,7 @@ class TestFlaskAPI(unittest.TestCase):
     def test_receive_table_data_non_dict(self):
         data = {"table": "not_a_dict"}
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -117,7 +117,7 @@ class TestFlaskAPI(unittest.TestCase):
     def test_receive_table_data_invalid_table_dict(self):
         data = {"table": {"invalid_table": {}}}
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -136,7 +136,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -156,7 +156,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -177,7 +177,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -197,7 +197,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -217,7 +217,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -227,17 +227,17 @@ class TestFlaskAPI(unittest.TestCase):
     def test_receive_table_data_1000_records(self):
         large_data = generate_large_data(n=1000)
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(large_data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(large_data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(result['status'], 'success')
-        self.assertIn("Pandas DataFrame created for table 'hired_employees'.", result['message'])
+        self.assertIn("Data was inserted into table 'HIRED_EMPLOYEES'.", result['message'])
 
     def test_receive_table_data_1001_records(self):
         large_data = generate_large_data(n=1001)
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(large_data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(large_data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
@@ -257,7 +257,7 @@ class TestFlaskAPI(unittest.TestCase):
             }
         }
 
-        response = self.app.post('/api/receive_table_data', data=json.dumps(data), content_type='application/json')
+        response = self.app.post('/api/receive-table-data', data=json.dumps(data), content_type='application/json')
         result = json.loads(response.data.decode('utf-8'))
 
         self.assertEqual(response.status_code, 400)
