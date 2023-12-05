@@ -97,6 +97,7 @@ snowflake-connector-python[secure-local-storage,pandas]
         }
     }
     ```
+* Look into `json_samples/` folder to use JSON samples of each table.
 * Send the Request:
     - Click on the "Send" button to send the POST request to your Flask API.
 * View Response:
